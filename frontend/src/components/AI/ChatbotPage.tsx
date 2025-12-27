@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader, MessageSquare, Menu, Plus, Trash2, Edit3, Search, X, Mic, MicOff, Volume2, VolumeX, ArrowLeft, Loader2 } from 'lucide-react';
+import { Send, Bot, User, Loader, MessageSquare, Menu, Plus, Trash2, Edit3, Search, X, Mic, MicOff, Volume2, VolumeX, ArrowLeft, Loader2, Image, ChevronDown, ChevronUp, Code } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { AiService } from '../../services/aiService';
+import { AiService, AiResponse } from '../../services/aiService';
 import { AuthService } from '../../services/authService';
+import { BackendAiResponse } from '../../config/api';
 
 interface Message {
   id: string;
@@ -14,6 +15,8 @@ interface Message {
   intelligence_level?: 'instant' | 'smart' | 'advanced';
   sources?: string[];
   eventBreakdown?: Array<{ label: string; ms: number; source: string }>;
+  rawBackendResponse?: BackendAiResponse;  // Store exact backend response for drawer
+  imageUrl?: string;  // For user-uploaded images
 }
 
 interface Conversation {
@@ -52,6 +55,14 @@ const ChatbotPage: React.FC<ChatbotPageProps> = ({ onNavigateBack }) => {
   const audioChunksRef = useRef<Blob[]>([]);
   // Expanded event breakdown for AI message
   const [expandedEventIdx, setExpandedEventIdx] = useState<string | null>(null);
+  
+  // Image upload states
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Raw response drawer state
+  const [expandedRawResponseId, setExpandedRawResponseId] = useState<string | null>(null);
 
   // Get Deepgram API key from environment
   const DEEPGRAM_API_KEY = import.meta.env.VITE_DEEPGRAM_API_KEY || '';
@@ -227,17 +238,53 @@ const ChatbotPage: React.FC<ChatbotPageProps> = ({ onNavigateBack }) => {
     }
   };
 
+  // Image handling functions
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert(language === 'hi' ? 'कृपया एक छवि फ़ाइल चुनें' : 'Please select an image file');
+        return;
+      }
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert(language === 'hi' ? 'छवि 10MB से छोटी होनी चाहिए' : 'Image must be smaller than 10MB');
+        return;
+      }
+      setSelectedImage(file);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSendMessage = async () => {
-    if (!inputText.trim() || isLoading) return;
+    if ((!inputText.trim() && !selectedImage) || isLoading) return;
+    
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputText,
+      text: inputText || (language === 'hi' ? '[छवि भेजी गई]' : '[Image sent]'),
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      imageUrl: imagePreview || undefined
     };
     setMessages(prev => [...prev, userMessage]);
-    const queryText = inputText;
+    const queryText = inputText || (selectedImage ? (language === 'hi' ? 'इस छवि का विश्लेषण करें' : 'Analyze this image') : '');
+    const currentImage = selectedImage;
     setInputText('');
+    handleRemoveImage();
     setIsLoading(true);
     setResponseStartTime(Date.now());
     // Create a placeholder AI message that will be updated as chunks arrive
@@ -252,7 +299,7 @@ const ChatbotPage: React.FC<ChatbotPageProps> = ({ onNavigateBack }) => {
     setMessages(prev => [...prev, initialAiMessage]);
     setIsStreaming(true);
     try {
-      // Use AiService with streaming
+      // Use AiService with streaming (pass image if available)
       let streamedText = '';
       const aiResponse = await AiService.processQueryStream(
         queryText,
@@ -268,7 +315,8 @@ const ChatbotPage: React.FC<ChatbotPageProps> = ({ onNavigateBack }) => {
         },
         currentConversationId || undefined,
         undefined,
-        language
+        language,
+        currentImage || undefined  // Pass image to backend
       );
       setIsStreaming(false);
       // Update the conversation ID if this is a new conversation
@@ -285,7 +333,8 @@ const ChatbotPage: React.FC<ChatbotPageProps> = ({ onNavigateBack }) => {
                 responseTime: aiResponse.responseTime,
                 intelligence_level: 'advanced',
                 sources: aiResponse.sources,
-                eventBreakdown: aiResponse.eventBreakdown
+                eventBreakdown: aiResponse.eventBreakdown,
+                rawBackendResponse: aiResponse.rawBackendResponse  // Store exact backend response
               }
             : msg
         )
@@ -354,8 +403,8 @@ const ChatbotPage: React.FC<ChatbotPageProps> = ({ onNavigateBack }) => {
     try {
       setCurrentConversationId(conversationId);
       const history = await AiService.getConversationHistory(conversationId);
-      const formattedMessages: Message[] = history.map(msg => ({
-        id: msg.id || Date.now().toString(),
+      const formattedMessages: Message[] = history.map((msg, index) => ({
+        id: msg.id || `msg_${conversationId}_${index}_${Date.now()}`,
         text: msg.content,
         sender: msg.role === 'user' ? 'user' : 'ai',
         timestamp: new Date(msg.timestamp),
@@ -702,6 +751,16 @@ const ChatbotPage: React.FC<ChatbotPageProps> = ({ onNavigateBack }) => {
                       ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
                       : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 shadow-sm'
                   }`}>
+                    {/* Display image if user sent one */}
+                    {message.sender === 'user' && message.imageUrl && (
+                      <div className="mb-2">
+                        <img
+                          src={message.imageUrl}
+                          alt="Uploaded"
+                          className="max-w-full max-h-48 rounded-lg"
+                        />
+                      </div>
+                    )}
                     <div className="flex items-start justify-between gap-2">
                       <p className="whitespace-pre-wrap leading-relaxed text-sm break-words flex-1">
                         {typeof message.text === 'string'
@@ -770,6 +829,51 @@ const ChatbotPage: React.FC<ChatbotPageProps> = ({ onNavigateBack }) => {
                             {message.sources.includes('live_sensor_data') && <span title="Live Sensor Data" className="text-base">📊</span>}
                             {message.sources.includes('live_weather_data') && <span title="Live Weather Data" className="text-base">🌤️</span>}
                             {message.sources.includes('gemini_ai') && <span title="Gemini AI" className="text-base">🚀</span>}
+                            {message.sources.includes('rag_knowledge') && <span title="RAG Knowledge" className="text-base">📚</span>}
+                            {message.sources.includes('ml_predictions') && <span title="ML Predictions" className="text-base">🤖</span>}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Raw Response Drawer Button */}
+                    {message.sender === 'ai' && message.rawBackendResponse && (
+                      <div className="mt-2">
+                        <button
+                          onClick={() => setExpandedRawResponseId(
+                            expandedRawResponseId === message.id ? null : message.id
+                          )}
+                          className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        >
+                          <Code className="h-3 w-3" />
+                          <span>{language === 'hi' ? 'रॉ रिस्पॉन्स' : 'Raw Response'}</span>
+                          {expandedRawResponseId === message.id ? (
+                            <ChevronUp className="h-3 w-3" />
+                          ) : (
+                            <ChevronDown className="h-3 w-3" />
+                          )}
+                        </button>
+                        
+                        {/* Expandable Raw Response Drawer */}
+                        {expandedRawResponseId === message.id && (
+                          <div className="mt-2 p-3 bg-gray-900 dark:bg-gray-950 rounded-lg border border-gray-700 overflow-hidden">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-semibold text-green-400">
+                                {language === 'hi' ? 'बैकएंड रिस्पॉन्स' : 'Backend Response'}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(JSON.stringify(message.rawBackendResponse, null, 2));
+                                  alert(language === 'hi' ? 'कॉपी किया गया!' : 'Copied to clipboard!');
+                                }}
+                                className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                              >
+                                {language === 'hi' ? 'कॉपी करें' : 'Copy'}
+                              </button>
+                            </div>
+                            <pre className="text-xs text-gray-300 overflow-x-auto max-h-96 overflow-y-auto font-mono whitespace-pre-wrap">
+                              {JSON.stringify(message.rawBackendResponse, null, 2)}
+                            </pre>
                           </div>
                         )}
                       </div>
@@ -864,7 +968,53 @@ const ChatbotPage: React.FC<ChatbotPageProps> = ({ onNavigateBack }) => {
                 </div>
               )}
 
+              {/* Image Upload Button */}
+              <div className="relative">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageSelect}
+                  accept="image/*"
+                  className="hidden"
+                  aria-hidden="true"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading || isRecording}
+                  className={`flex-shrink-0 p-3 rounded-xl transition-all active:scale-95 touch-manipulation ${
+                    selectedImage
+                      ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/50'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  title={language === 'hi' ? 'छवि जोड़ें' : 'Add image'}
+                  aria-label={language === 'hi' ? 'छवि जोड़ें' : 'Add image'}
+                >
+                  <Image className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Input area with image preview */}
               <div className="flex-1 relative">
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="absolute bottom-full mb-2 left-0 right-0">
+                    <div className="relative inline-block">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="h-20 w-auto rounded-lg border-2 border-green-500 shadow-lg"
+                      />
+                      <button
+                        onClick={handleRemoveImage}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                        title={language === 'hi' ? 'हटाएं' : 'Remove'}
+                        aria-label={language === 'hi' ? 'छवि हटाएं' : 'Remove image'}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <textarea
                   ref={textareaRef}
                   value={inputText}
@@ -893,7 +1043,7 @@ const ChatbotPage: React.FC<ChatbotPageProps> = ({ onNavigateBack }) => {
 
               <button
                 onClick={handleSendMessage}
-                disabled={!inputText.trim() || isLoading || isRecording}
+                disabled={(!inputText.trim() && !selectedImage) || isLoading || isRecording}
                 className="flex-shrink-0 bg-gradient-to-r from-green-600 to-blue-600 text-white p-3 rounded-xl hover:from-green-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 shadow-lg shadow-green-500/30 touch-manipulation"
                 aria-label={language === 'hi' ? 'भेजें' : 'Send'}
               >
@@ -917,6 +1067,11 @@ const ChatbotPage: React.FC<ChatbotPageProps> = ({ onNavigateBack }) => {
                     </span>
                   </>
                 )}
+                <span className="hidden sm:inline">•</span>
+                <span className="flex items-center gap-1">
+                  <span>📷</span>
+                  <span className="font-medium">{language === 'hi' ? 'छवि' : 'Image'}</span>
+                </span>
               </div>
             </div>
           </div>

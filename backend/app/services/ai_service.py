@@ -570,7 +570,7 @@ async def process_ai_query(
                 {
                     "type": "image_url",
                     "image_url": {
-                        "url": f"data:{media_type};base_64,{image_base64}"
+                        "url": f"data:{media_type};base64,{image_base64}"
                     }
                 },
                 {
@@ -663,3 +663,227 @@ async def process_ai_query(
         "detected_language": detected_lang,
         "timing_analysis": timings  # <--- Added back
     }
+
+
+# ========================================
+# 🌤️ WEATHER INSIGHTS GENERATOR
+# ========================================
+WEATHER_INSIGHTS_PROMPT = """You are an agricultural weather advisor. Generate a brief, practical farming insight based on the weather conditions provided.
+
+STRICT RULES:
+1. NO emojis, special characters, or symbols - use plain text only
+2. Keep response to 2-3 sentences maximum
+3. Be specific and actionable
+4. Focus on immediate farming implications
+5. Use simple, farmer-friendly language
+6. If Hindi is requested, use simple Hindi words without complex vocabulary
+
+Weather Data:
+- Temperature: {temperature}°C
+- Humidity: {humidity}%
+- Condition: {weather_description}
+- Trend: {trend}
+
+Language: {language}
+
+Respond with a practical farming insight for these conditions. Do NOT use bullet points or numbered lists."""
+
+
+async def generate_weather_insights(
+    temperature: float,
+    humidity: float,
+    weather_description: str,
+    trend: str,
+    language: str = "en"
+) -> str:
+    """
+    Generate AI-driven weather insights for farming.
+    Returns clean text without special characters.
+    """
+    try:
+        prompt = WEATHER_INSIGHTS_PROMPT.format(
+            temperature=temperature,
+            humidity=humidity,
+            weather_description=weather_description,
+            trend="warming" if trend == "warming" else "cooling" if trend == "cooling" else "stable",
+            language="Hindi (हिंदी)" if language == "hi" else "English"
+        )
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {GROQ_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+                    "messages": [
+                        {"role": "system", "content": "You are a concise agricultural advisor. No emojis, symbols, or special characters. Plain text only."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 150,
+                    "temperature": 0.3
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                insight = data["choices"][0]["message"]["content"].strip()
+                # Clean any remaining special characters
+                insight = clean_insight_text(insight)
+                return insight
+            else:
+                logger.error(f"Groq API error for weather insights: {response.status_code}")
+                return get_fallback_weather_insight(temperature, humidity, trend, language)
+                
+    except Exception as e:
+        logger.error(f"Error generating weather insights: {e}")
+        return get_fallback_weather_insight(temperature, humidity, trend, language)
+
+
+def get_fallback_weather_insight(temperature: float, humidity: float, trend: str, language: str) -> str:
+    """Fallback weather insight when API fails."""
+    if language == "hi":
+        base = f"तापमान {temperature} डिग्री सेल्सियस और नमी {humidity} प्रतिशत है।"
+        if trend == "warming":
+            return f"{base} तापमान बढ़ रहा है, सिंचाई पर ध्यान दें।"
+        elif trend == "cooling":
+            return f"{base} तापमान गिर रहा है, फसलों को ठंड से बचाएं।"
+        return f"{base} मौसम स्थिर है, नियमित खेती जारी रखें।"
+    else:
+        base = f"Temperature is {temperature}C with {humidity}% humidity."
+        if trend == "warming":
+            return f"{base} Rising temperatures suggest increased irrigation may be needed."
+        elif trend == "cooling":
+            return f"{base} Cooling trend detected, consider protecting crops from cold."
+        return f"{base} Weather is stable, continue regular farming activities."
+
+
+# ========================================
+# 📊 SENSOR INSIGHTS GENERATOR
+# ========================================
+SENSOR_INSIGHTS_PROMPT = """You are an agricultural sensor data advisor. Generate a brief, practical farming insight based on the sensor reading provided.
+
+STRICT RULES:
+1. NO emojis, special characters, or symbols - use plain text only
+2. Keep response to 2-3 sentences maximum
+3. Be specific and actionable
+4. Focus on what the farmer should do based on this reading
+5. Use simple, farmer-friendly language
+6. If Hindi is requested, use simple Hindi words
+
+Sensor Data:
+- Parameter: {sensor_name}
+- Current Value: {value}{unit}
+- Status: {status}
+- Trend: {trend}
+
+Language: {language}
+
+Respond with a practical farming insight for this sensor reading. Do NOT use bullet points or numbered lists."""
+
+
+async def generate_sensor_insights(
+    sensor_name: str,
+    value: float,
+    unit: str,
+    status: str,
+    trend: str,
+    language: str = "en"
+) -> str:
+    """
+    Generate AI-driven sensor insights for farming.
+    Returns clean text without special characters.
+    """
+    try:
+        unit_display = f" {unit}" if unit else ""
+        status_text = "optimal" if status == "optimal" else "needs attention" if status == "warning" else "critical - action needed"
+        trend_text = "increasing" if trend == "up" else "decreasing" if trend == "down" else "stable"
+        
+        prompt = SENSOR_INSIGHTS_PROMPT.format(
+            sensor_name=sensor_name,
+            value=value,
+            unit=unit_display,
+            status=status_text,
+            trend=trend_text,
+            language="Hindi (हिंदी)" if language == "hi" else "English"
+        )
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {GROQ_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+                    "messages": [
+                        {"role": "system", "content": "You are a concise agricultural advisor. No emojis, symbols, or special characters. Plain text only."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 150,
+                    "temperature": 0.3
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                insight = data["choices"][0]["message"]["content"].strip()
+                # Clean any remaining special characters
+                insight = clean_insight_text(insight)
+                return insight
+            else:
+                logger.error(f"Groq API error for sensor insights: {response.status_code}")
+                return get_fallback_sensor_insight(sensor_name, value, unit, status, trend, language)
+                
+    except Exception as e:
+        logger.error(f"Error generating sensor insights: {e}")
+        return get_fallback_sensor_insight(sensor_name, value, unit, status, trend, language)
+
+
+def get_fallback_sensor_insight(sensor_name: str, value: float, unit: str, status: str, trend: str, language: str) -> str:
+    """Fallback sensor insight when API fails."""
+    unit_display = f" {unit}" if unit else ""
+    
+    if language == "hi":
+        base = f"{sensor_name} का मान {value}{unit_display} है।"
+        if status == "critical":
+            return f"{base} स्थिति गंभीर है, तुरंत कार्रवाई करें।"
+        elif status == "warning":
+            return f"{base} ध्यान देने की आवश्यकता है।"
+        return f"{base} मान सामान्य सीमा में है।"
+    else:
+        base = f"{sensor_name} reading is {value}{unit_display}."
+        if status == "critical":
+            return f"{base} This is critical and requires immediate action."
+        elif status == "warning":
+            return f"{base} This needs attention soon."
+        return f"{base} Value is within normal range."
+
+
+def clean_insight_text(text: str) -> str:
+    """Remove emojis and special characters from insight text."""
+    import re
+    # Remove emojis
+    emoji_pattern = re.compile("["
+        u"\U0001F600-\U0001F64F"  # emoticons
+        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+        u"\U0001F1E0-\U0001F1FF"  # flags
+        u"\U00002702-\U000027B0"
+        u"\U000024C2-\U0001F251"
+        "]+", flags=re.UNICODE)
+    text = emoji_pattern.sub('', text)
+    
+    # Remove asterisks used for bold/emphasis
+    text = text.replace('**', '').replace('*', '')
+    
+    # Remove bullet points
+    text = text.replace('•', '').replace('●', '').replace('○', '')
+    
+    # Clean up extra whitespace
+    text = ' '.join(text.split())
+    
+    return text.strip()

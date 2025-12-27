@@ -5,8 +5,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { RagResponse } from '../../services/ragService';
-import { AiService } from '../../services/aiService';
+import { AiService, AiResponse } from '../../services/aiService';
 import { Loader2, Send, MapPin, Sparkles, Database, Cloud, Sprout, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 // ============================================================================
@@ -18,7 +17,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  response?: RagResponse;
+  response?: AiResponse;
 }
 
 interface LocationState {
@@ -132,39 +131,13 @@ export const RagChatInterface: React.FC<RagChatInterfaceProps> = ({ onNavigateBa
     setThinkingSteps([]);
 
     try {
-      // Check cache first
-  const cached = await AiService.getCachedResponse(userMessage.content);
-      
-      if (cached) {
-        setThinkingSteps(['Found cached answer...']);
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
-        
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: cached.answer,
-          timestamp: new Date(),
-          response: cached
-        };
-        
-        setMessages(prev => [...prev, assistantMessage]);
-        setIsLoading(false);
-        setThinkingSteps([]);
-        return;
-      }
-
-      // Get real-time answer
-      const locationData = location.latitude && location.longitude
-        ? { latitude: location.latitude, longitude: location.longitude, name: location.name }
-        : undefined;
-
       // Show thinking process
       const thinkingInterval = setInterval(() => {
         setThinkingSteps(prev => {
           if (prev.length < 4) {
             const steps = [
               'Analyzing your question...',
-              'Fetching real-time data...',
+              'Fetching real-time data from backend...',
               'Processing agricultural insights...',
               'Generating answer...'
             ];
@@ -174,15 +147,15 @@ export const RagChatInterface: React.FC<RagChatInterfaceProps> = ({ onNavigateBa
         });
       }, 800);
 
-  // Route query through AiService for enrichment, then to QueryAnalyzer and RAG pipeline
-  const response: RagResponse = await AiService.enrichAndRouteQuery(userMessage.content, locationData);
+      // Call backend via AiService
+      const response = await AiService.processQuery(userMessage.content);
 
       clearInterval(thinkingInterval);
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response.answer,
+        content: response.advice,
         timestamp: new Date(),
         response: response
       };
@@ -194,7 +167,7 @@ export const RagChatInterface: React.FC<RagChatInterfaceProps> = ({ onNavigateBa
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'I apologize, but I encountered an error. Please check your API keys and try again.',
+        content: 'I apologize, but I encountered an error. Please check your backend connection and try again.',
         timestamp: new Date()
       };
 
@@ -258,7 +231,7 @@ export const RagChatInterface: React.FC<RagChatInterfaceProps> = ({ onNavigateBa
                   Farm AI Assistant
                 </h1>
                 <p className="text-sm text-gray-600 mt-1">
-                  Real-time agricultural intelligence • Powered by RAG
+                  Real-time agricultural intelligence • Powered by Backend AI
                 </p>
               </div>
             </div>
@@ -310,7 +283,7 @@ export const RagChatInterface: React.FC<RagChatInterfaceProps> = ({ onNavigateBa
                 <div className="bg-white p-4 rounded-lg border border-gray-200">
                   <Database className="w-8 h-8 text-blue-600 mb-2" />
                   <h3 className="font-semibold text-gray-800 mb-1">Real-Time Soil Data</h3>
-                  <p className="text-sm text-gray-600">Live soil properties from SoilGrids API</p>
+                  <p className="text-sm text-gray-600">Live soil properties from sensor data</p>
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-gray-200">
                   <Cloud className="w-8 h-8 text-sky-600 mb-2" />
@@ -319,8 +292,8 @@ export const RagChatInterface: React.FC<RagChatInterfaceProps> = ({ onNavigateBa
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-gray-200">
                   <Sprout className="w-8 h-8 text-green-600 mb-2" />
-                  <h3 className="font-semibold text-gray-800 mb-1">Crop Recommendations</h3>
-                  <p className="text-sm text-gray-600">Expert crop data from FAO/Wikidata</p>
+                  <h3 className="font-semibold text-gray-800 mb-1">ML Crop Predictions</h3>
+                  <p className="text-sm text-gray-600">AI-powered crop recommendations</p>
                 </div>
               </div>
             </div>
@@ -412,11 +385,11 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
         {!isUser && message.response && (
           <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
             {/* Data Sources */}
-            {message.response.sources.length > 0 && (
+            {message.response.sources && message.response.sources.length > 0 && (
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Database className="w-4 h-4" />
                 <span className="font-medium">Data from:</span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {message.response.sources.map((source, i) => (
                     <span
                       key={i}
@@ -430,30 +403,30 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
             )}
 
             {/* Data Used Indicators */}
-            <div className="flex gap-3 text-xs">
-              {message.response.data_used.soil && (
+            <div className="flex gap-3 text-xs flex-wrap">
+              {message.response.ragInfo?.success && (
                 <div className="flex items-center gap-1 text-green-600">
                   <CheckCircle2 className="w-3 h-3" />
-                  Soil Data
+                  RAG Knowledge
                 </div>
               )}
-              {message.response.data_used.weather && (
+              {message.response.mlPredictionUsed && (
+                <div className="flex items-center gap-1 text-purple-600">
+                  <CheckCircle2 className="w-3 h-3" />
+                  ML Predictions
+                </div>
+              )}
+              {message.response.detectedLanguage && (
                 <div className="flex items-center gap-1 text-blue-600">
                   <CheckCircle2 className="w-3 h-3" />
-                  Weather Data
-                </div>
-              )}
-              {message.response.data_used.crops && (
-                <div className="flex items-center gap-1 text-emerald-600">
-                  <CheckCircle2 className="w-3 h-3" />
-                  Crop Data
+                  {message.response.detectedLanguage === 'hindi' ? 'Hindi' : 'English'}
                 </div>
               )}
             </div>
 
             {/* Response Time */}
             <div className="text-xs text-gray-500">
-              Response time: {message.response.response_time_ms}ms
+              Response time: {Math.round(message.response.responseTime || 0)}ms
               {message.response.confidence > 0 && (
                 <span className="ml-3">
                   Confidence: {(message.response.confidence * 100).toFixed(0)}%

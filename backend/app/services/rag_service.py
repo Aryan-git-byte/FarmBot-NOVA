@@ -174,7 +174,7 @@ async def search_tavily(
     exclude = exclude_domains or pdf_domains
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:  # Reduced from 30s to 10s
             payload = {
                 "api_key": TAVILY_API_KEY,
                 "query": query,
@@ -216,39 +216,82 @@ async def search_tavily(
 async def hybrid_search(
     query: str,
     top_k_rag: int = 8,
-    top_k_web: int = 5,
+    top_k_web: int = 3,  # Reduced from 5
     force_web: bool = False
 ) -> Dict[str, Any]:
-    """Combined RAG + Tavily search - NO CROP/REGION FILTERS"""
+    """Combined RAG + Tavily search - OPTIMIZED for speed"""
 
     logger.info(f"Hybrid search: '{query[:50]}...'")
+    query_lower = query.lower().strip()
 
-    # Phase 1: RAG Search
+    # ========================================
+    # SKIP RAG FOR SIMPLE GREETINGS/SMALL TALK
+    # ========================================
+    greeting_patterns = [
+        "hi", "hello", "hey", "hii", "hiii", "hola", "namaste", 
+        "good morning", "good afternoon", "good evening", "good night",
+        "how are you", "what's up", "whats up", "wassup", "sup",
+        "thanks", "thank you", "ok", "okay", "bye", "goodbye",
+        "नमस्ते", "नमस्कार", "धन्यवाद", "शुक्रिया"
+    ]
+    
+    is_greeting = any(
+        query_lower == pattern or 
+        query_lower.startswith(pattern + " ") or
+        query_lower.endswith(" " + pattern)
+        for pattern in greeting_patterns
+    )
+    
+    # Also check if query is too short to be a real question
+    is_too_short = len(query_lower.split()) <= 2 and not any(
+        word in query_lower for word in ["crop", "plant", "soil", "water", "farm", "grow", "disease", "pest"]
+    )
+    
+    if is_greeting or is_too_short:
+        logger.info(f"Skipping RAG for greeting/short query: '{query}'")
+        return {
+            "rag_chunks": [],
+            "web_results": [],
+            "rag_count": 0,
+            "web_count": 0,
+            "used_web": False,
+            "query_enhanced": False,
+            "search_decision": {
+                "force_web": False,
+                "rag_count": 0,
+                "has_location_keyword": False,
+                "has_time_keyword": False,
+                "decided_web": False,
+                "skipped_reason": "greeting_or_short_query"
+            }
+        }
+
+    # Phase 1: RAG Search (fast - local Qdrant)
     rag_results = search_knowledge(query, top_k_rag)
 
     # Phase 2: Decide if web search is needed
-    query_lower = query.lower()
-    location_keywords = ["near", "nearby", "kvk",
-                         "location", "find", "where", "search"]
-    time_keywords = ["latest", "recent",
-                     "current", "new", "today", "2024", "2025"]
+    location_keywords = ["near", "nearby", "kvk", "location", "find", "where", "search"]
+    time_keywords = ["latest", "recent", "current", "new", "today", "2024", "2025", "news"]
 
-    has_location_keyword = any(
-        word in query_lower for word in location_keywords)
+    has_location_keyword = any(word in query_lower for word in location_keywords)
     has_time_keyword = any(word in query_lower for word in time_keywords)
 
+    # ONLY trigger web search if explicitly needed
     needs_web = (
         force_web or
-        len(rag_results) < 3 or
         has_time_keyword or
         has_location_keyword
     )
+    
+    # DON'T trigger web search just because RAG returned few results
+    # This was causing 10+ second delays for simple queries
 
     logger.info(
         f"Web search decision: needs_web={needs_web} (rag_count={len(rag_results)}, time={has_time_keyword}, location={has_location_keyword})")
 
     web_results = []
     if needs_web:
+        # Use shorter timeout for web search
         web_data = await search_tavily(query, top_k_web)
         web_results = web_data
 

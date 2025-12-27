@@ -114,3 +114,71 @@ async def delete_conversation(
         "conversation_id": conversation_id,
         "message": "Conversation deleted"
     }
+
+
+@router.post("/weather-insights")
+async def get_weather_insights(
+    temperature: float = Form(..., description="Current temperature in Celsius"),
+    humidity: float = Form(..., description="Current humidity percentage"),
+    weather_description: str = Form(..., description="Weather condition description", max_length=200),
+    trend: str = Form("stable", description="Temperature trend: warming, cooling, or stable"),
+    language: str = Form("en", description="Language: en or hi")
+):
+    """
+    Generate AI-driven weather insights for farming.
+    Returns clean, actionable advice without special characters.
+    """
+    from app.services.ai_service import generate_weather_insights
+    
+    insights = await generate_weather_insights(
+        temperature=temperature,
+        humidity=humidity,
+        weather_description=weather_description,
+        trend=trend,
+        language=language
+    )
+    
+    return {
+        "success": True,
+        "insights": insights,
+        "temperature": temperature,
+        "humidity": humidity,
+        "trend": trend,
+        "language": language
+    }
+
+
+@router.post("/sensor-insights")
+async def get_sensor_insights(
+    sensor_name: str = Form(..., description="Name of the sensor parameter", max_length=100),
+    value: float = Form(..., description="Sensor reading value"),
+    unit: str = Form("", description="Unit of measurement", max_length=20),
+    status: str = Form("optimal", description="Status: optimal, warning, or critical"),
+    trend: str = Form("stable", description="Trend: up, down, or stable"),
+    language: str = Form("en", description="Language: en or hi")
+):
+    """
+    Generate AI-driven sensor insights for farming.
+    Returns clean, actionable advice without special characters.
+    """
+    from app.services.ai_service import generate_sensor_insights
+    
+    insights = await generate_sensor_insights(
+        sensor_name=sensor_name,
+        value=value,
+        unit=unit,
+        status=status,
+        trend=trend,
+        language=language
+    )
+    
+    return {
+        "success": True,
+        "insights": insights,
+        "sensor_name": sensor_name,
+        "value": value,
+        "unit": unit,
+        "status": status,
+        "trend": trend,
+        "language": language
+    }
