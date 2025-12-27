@@ -102,3 +102,5 @@ knowledge_chunks_rows.csv
 index.html
 static/
 static
+
+model_cache
