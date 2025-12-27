@@ -1,0 +1,36 @@
+/* stylelint-disable at-rule-no-unknown */
+
+ /* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind base;
+ /* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind components;
+ /* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind utilities;
+
+/* Custom animations for chatbot */
+@layer utilities {
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Smooth scrolling for chat messages */
+  .overscroll-contain {
+    overscroll-behavior: contain;
+  }
+  
+  /* Touch manipulation for better mobile interaction */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+}

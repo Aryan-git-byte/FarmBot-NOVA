@@ -1,0 +1,138 @@
+[
+  {
+    "id": "1",
+    "input": {
+      "id": "1",
+      "language": "en",
+      "latitude": 28.6139,
+      "longitude": 77.209,
+      "soilMoisture": 45,
+      "soilPH": 6.5,
+      "soilNitrogen": 120,
+      "soilPhosphorus": 45,
+      "soilPotassium": 180,
+      "cropType": "wheat"
+    },
+    "query": "Provide farming advice based on these parameters. Location: 28.6139, 77.209, Soil Moisture: 45%, Soil pH: 6.5, Nitrogen: 120 mg/kg, Phosphorus: 45 mg/kg, Potassium: 180 mg/kg, Temperature: 31°C, Humidity: 30%, Weather: कुहरा, Wind Speed: 9 km/h, Crop: wheat",
+    "response": "🌾 **Welcome to Farming Advice** 🌾\n\nGiven your location at 28.6139, 77.209, and the current conditions, I'll provide you with tailored advice for your wheat crop.\n\n🌱 **Main Advice**: \nWith a soil moisture level of 45%, your soil is at an optimal level for wheat growth. The soil pH of 6.5 is also within the ideal range for most crops, including wheat. \n- **Nitrogen Levels**: At 120 mg/kg, your nitrogen levels are adequate for wheat growth. Monitor the crop's growth, and only consider adding more nitrogen if a deficiency is observed. \n- **Phosphorus Levels**: Phosphorus is at 45 mg/kg, which is slightly above the adequate range. Maintain current levels, as excessive phosphorus can lead to imbalances.\n- **Potassium Levels**: With potassium at 180 mg/kg, levels are more than adequate. Ensure you maintain these levels without over-application, which can lead to soil imbalances.\n- **Temperature and Humidity**: The temperature of 31°C and humidity of 30% are within manageable ranges for wheat. However, keep an eye on these parameters, especially during the monsoon season, to prevent fungal diseases.\n- **Weather (कुहरा)**: The current weather condition of कुहरा (fog) can be beneficial for wheat, providing cooler conditions and potentially increasing moisture levels. Be prepared for potential issues like fungal diseases due to high humidity.\n\n⚡ **Immediate Actions**:\n1. **Monitor for Fungal Diseases**: Given the humid conditions, inspect your wheat crop regularly for signs of fungal diseases. Use appropriate fungicides if necessary, following local guidelines and regulations.\n2. **Soil Aeration**: Ensure good soil aeration to prevent waterlogging, which can be detrimental to wheat. If possible, consider drainage improvements.\n3. **Pest Control**: Keep a lookout for pests that thrive in humid conditions. Use integrated pest management techniques to minimize chemical use.\n\n📅 **Next Steps**:\n1. **Soil Testing**: Schedule a follow-up soil test to monitor nutrient levels, especially nitrogen, and adjust your fertilizer applications accordingly.\n2. **Irrigation Management**: Plan your irrigation carefully, considering the monsoon forecast. Avoid waterlogging by ensuring your fields have good drainage.\n3. **Crop Monitoring**: Regularly monitor your wheat crop for any signs of stress, disease, or pests, and take proactive measures to address any issues promptly.\n\n❓ **Follow-up Questions**:\n- What is your current irrigation plan, and how do you intend to adjust it based on monsoon forecasts?\n- Have you noticed any signs of pests or diseases in your wheat crop?\n- Are there any local agricultural extension services or experts you consult for specific advice tailored to your region?\n\n🔗 **Related Topics**:\n- **Monsoon Preparation**: Review your farm's readiness for the monsoon season, including drainage, equipment preparedness, and emergency plans.\n- **Sustainable Farming Practices**: Consider integrating more sustainable practices into your farming, such as crop rotation, organic fertilizers, and conservation agriculture, to improve soil health and resilience.\n\nRemember, local conditions and the specific growth stage of your wheat crop can significantly impact the advice given. Always consult with local agricultural experts and conduct regular soil tests to get the most accurate and beneficial guidance for your farm. 🌾👨‍🌾",
+    "confidence": 0.9,
+    "responseTime": 25154.099999999627,
+    "timestamp": "2025-10-16T10:59:45.771Z",
+    "status": "success",
+    "recommendations": {
+      "immediate": [
+        "1. **Monitor for Fungal Diseases**: Given the humid conditions, inspect your wheat crop regularly for signs of fungal diseases. Use appropriate fungicides if necessary, following local guidelines and regulations.",
+        "2. **Soil Aeration**: Ensure good soil aeration to prevent waterlogging, which can be detrimental to wheat. If possible, consider drainage improvements.",
+        "3. **Pest Control**: Keep a lookout for pests that thrive in humid conditions. Use integrated pest management techniques to minimize chemical use."
+      ],
+      "shortTerm": [
+        "1. **Soil Testing**: Schedule a follow-up soil test to monitor nutrient levels, especially nitrogen, and adjust your fertilizer applications accordingly.",
+        "2. **Irrigation Management**: Plan your irrigation carefully, considering the monsoon forecast. Avoid waterlogging by ensuring your fields have good drainage.",
+        "3. **Crop Monitoring**: Regularly monitor your wheat crop for any signs of stress, disease, or pests, and take proactive measures to address any issues promptly."
+      ],
+      "longTerm": []
+    },
+    "followUpQuestions": [
+      "What is your current irrigation plan, and how do you intend to adjust it based on monsoon forecasts?",
+      "Have you noticed any signs of pests or diseases in your wheat crop?",
+      "Are there any local agricultural extension services or experts you consult for specific advice tailored to your region?"
+    ],
+    "relatedTopics": [
+      "**Monsoon Preparation**: Review your farm's readiness for the monsoon season, including drainage, equipment preparedness, and emergency plans.",
+      "**Sustainable Farming Practices**: Consider integrating more sustainable practices into your farming, such as crop rotation, organic fertilizers, and conservation agriculture, to improve soil health and resilience.",
+      "Remember, local conditions and the specific growth stage of your wheat crop can significantly impact the advice given. Always consult with local agricultural experts and conduct regular soil tests to get the most accurate and beneficial guidance for your farm. 🌾👨‍🌾"
+    ],
+    "weatherData": {
+      "id": "weather_1760612360967",
+      "location": "Parliament House, Delhi",
+      "latitude": 28.6139,
+      "longitude": 77.209,
+      "temperature": 31,
+      "humidity": 30,
+      "pressure": 1009,
+      "wind_speed": 9,
+      "wind_direction": 290,
+      "weather_condition": "Haze",
+      "weather_description": "कुहरा",
+      "visibility": 5,
+      "rainfall": 0,
+      "timestamp": "2025-10-16T10:59:20.967Z"
+    }
+  },
+  {
+    "id": "2",
+    "input": {
+      "id": "2",
+      "language": "hi",
+      "latitude": 22.5726,
+      "longitude": 88.3639,
+      "soilMoisture": 40,
+      "soilPH": 7,
+      "soilNitrogen": 100,
+      "soilPhosphorus": 40,
+      "soilPotassium": 160,
+      "cropType": "potato"
+    },
+    "query": "इन मापदंडों के आधार पर खेती की सलाह दें. Location: 22.5726, 88.3639, Soil Moisture: 40%, Soil pH: 7, Nitrogen: 100 mg/kg, Phosphorus: 40 mg/kg, Potassium: 160 mg/kg, Temperature: 30°C, Humidity: 54%, Weather: कुहरा, Wind Speed: 11 km/h, Crop: potato",
+    "response": "🌱 **मुख्य सलाह**: आपके क्षेत्र में मानसून के मौसम में दोपहर के समय के लिए व्यावहारिक और तकनीकी सलाह देने के लिए, मैंने आपके द्वारा प्रदान किए गए सभी मापदंडों को ध्यान में रखा है। आपके खेत की मिट्टी की नमी 40% है, जो आलू की फसल के लिए идеल है। मिट्टी का पीएच 7 है, जो अधिकांश फसलों के लिए उपयुक्त है। नाइट्रोजन की मात्रा 100 मिलीग्राम/किलोग्राम है, जो पर्याप्त है। फॉस्फोरस की मात्रा 40 मिलीग्राम/किलोग्राम है, जो भी पर्याप्त है। पोटाशियम की मात्रा 160 मिलीग्राम/किलोग्राम है, जो अधिक है।\n\nआलू की फसल के लिए, नाइट्रोजन की मात्रा पर्याप्त है, इसलिए आपको अतिरिक्त नाइट्रोजन नहीं डालनी चाहिए। फॉस्फोरस और पोटाशियम की मात्रा भी पर्याप्त है, इसलिए आपको इन्हें भी नहीं डालना चाहिए। मानसून के मौसम में दोपहर के समय में, आपको अपने खेत में पानी की निकासी का ध्यान रखना चाहिए, ताकि पानी खेत में जमा न हो। इसके अलावा, आपको अपने खेत में कीट और रोगों का नियंत्रण करना चाहिए, ताकि आपकी फसल को नुकसान न हो।\n\n⚡ **तुरंत कार्रवाई**: अपने खेत में पानी की निकासी का ध्यान रखें और कीट और रोगों का नियंत्रण करें।\n\n📅 **आगामी कदम**: अपने खेत में मिट्टी की जांच करें और आवश्यकतानुसार उर्वरकों का उपयोग करें। आलू की फसल के लिए, आपको नाइट्रोजन, फॉस्फोरस, और पोटाशियम की मात्रा को नियंत्रित करना चाहिए।\n\n❓ **आगामी प्रश्न**: क्या आपके पास कोई और प्रश्न हैं जिनका उत्तर मैं दे सकता हूं?\n\n🔗 **संबंधित विषय**: आलू की फसल के लिए मिट्टी की तैयारी, बीज का चयन, और फसल की देखभाल। मानसून के मौसम में दोपहर के समय के लिए व्यावहारिक और तकनीकी सलाह।",
+    "confidence": 0.9,
+    "responseTime": 26871.299999998882,
+    "timestamp": "2025-10-16T11:00:13.144Z",
+    "status": "success",
+    "weatherData": {
+      "id": "weather_1760612386590",
+      "location": "कोलकाता",
+      "latitude": 22.5726,
+      "longitude": 88.3639,
+      "temperature": 30,
+      "humidity": 54,
+      "pressure": 1008,
+      "wind_speed": 11,
+      "wind_direction": 350,
+      "weather_condition": "Haze",
+      "weather_description": "कुहरा",
+      "visibility": 4,
+      "rainfall": 0,
+      "timestamp": "2025-10-16T10:59:46.590Z"
+    }
+  },
+  {
+    "id": "3",
+    "input": {
+      "id": "3",
+      "language": "en"
+    },
+    "query": "[CRITICAL: Missing data - latitude, longitude, soil pH, soil moisture, nitrogen, phosphorus, potassium, crop type. Provide ONLY general advice with NO specific fertilizer doses or amounts. Request missing information.] Provide farming advice based on these parameters. ",
+    "response": "🌱 **Main Advice**: Although we have some critical data missing, I can provide general advice to help you prepare for the monsoon season. It's essential to ensure your soil is well-prepared to withstand the heavy rainfall and potential waterlogging. Given the optimal soil moisture, EC, and temperature, it's a good time to focus on nutrient management. However, without knowing the crop type, latitude, longitude, and specific soil conditions, I must emphasize the importance of soil testing and consulting local agricultural experts for personalized recommendations.\n\n⚡ **Immediate Actions**: \n1. Conduct a thorough soil test to determine the exact levels of nitrogen, phosphorus, potassium, and pH.\n2. Identify your crop type and research its specific nutrient requirements.\n3. Consult local agricultural experts to understand the best practices for your region, considering factors like latitude, longitude, and typical monsoon patterns.\n4. Prepare your farm for potential waterlogging by creating proper drainage systems.\n\n📅 **Next Steps**: \n1. Once you have the soil test results and know your crop type, you can start planning for nutrient supplementation, if necessary.\n2. Consider crop rotation and intercropping strategies to enhance soil fertility and structure.\n3. Review and adjust your irrigation system to accommodate monsoon rainfall, ensuring it doesn't lead to waterlogging.\n\n❓ **Follow-up Questions**: \n1. What is your crop type, and what are its specific nutrient requirements?\n2. Can you provide the exact latitude and longitude of your farm to give more tailored advice on monsoon preparation?\n3. What are your current irrigation and drainage systems like, and are they ready for the monsoon season?\n\n🔗 **Related Topics**: \n1. Monsoon-specific farming techniques\n2. Soil conservation methods\n3. Integrated nutrient management strategies\n4. Water harvesting and efficient irrigation systems\n\nPlease provide the missing information so I can offer more specific and detailed advice tailored to your farm's needs. 🌻",
+    "confidence": 0.9,
+    "responseTime": 18674.300000000745,
+    "timestamp": "2025-10-16T11:00:32.327Z",
+    "status": "success",
+    "recommendations": {
+      "immediate": [
+        "1. Conduct a thorough soil test to determine the exact levels of nitrogen, phosphorus, potassium, and pH.",
+        "2. Identify your crop type and research its specific nutrient requirements.",
+        "3. Consult local agricultural experts to understand the best practices for your region, considering factors like latitude, longitude, and typical monsoon patterns.",
+        "4. Prepare your farm for potential waterlogging by creating proper drainage systems."
+      ],
+      "shortTerm": [
+        "1. Once you have the soil test results and know your crop type, you can start planning for nutrient supplementation, if necessary.",
+        "2. Consider crop rotation and intercropping strategies to enhance soil fertility and structure.",
+        "3. Review and adjust your irrigation system to accommodate monsoon rainfall, ensuring it doesn't lead to waterlogging."
+      ],
+      "longTerm": []
+    },
+    "followUpQuestions": [
+      "1. What is your crop type, and what are its specific nutrient requirements?",
+      "2. Can you provide the exact latitude and longitude of your farm to give more tailored advice on monsoon preparation?",
+      "3. What are your current irrigation and drainage systems like, and are they ready for the monsoon season?"
+    ],
+    "relatedTopics": [
+      "1. Monsoon-specific farming techniques",
+      "2. Soil conservation methods",
+      "3. Integrated nutrient management strategies",
+      "4. Water harvesting and efficient irrigation systems",
+      "Please provide the missing information so I can offer more specific and detailed advice tailored to your farm's needs. 🌻"
+    ]
+  }
+]
